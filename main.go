@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/protoman92/goworkbenchmark/workqueue"
+	"github.com/protoman92/go.workbenchmark/workqueue"
 )
 
 func main() {
@@ -20,10 +20,7 @@ func main() {
 
 	waitGroup := sync.WaitGroup{}
 
-	runQueue := func(
-		implementation int,
-		createQueue func(<-chan workqueue.Job) (doneCh <-chan interface{}),
-	) {
+	runQueue := func(implementation int, runQueue func(<-chan workqueue.Job)) {
 		waitGroup.Add(1)
 		jobCh := make(chan workqueue.Job)
 
@@ -36,7 +33,7 @@ func main() {
 		}()
 
 		start := time.Now()
-		<-createQueue(jobCh)
+		runQueue(jobCh)
 		elapsed := time.Now().Sub(start)
 		fmt.Printf("Elapsed time for queue %d: %v\n", implementation, elapsed)
 		waitGroup.Done()
@@ -44,17 +41,15 @@ func main() {
 
 	// Queue 1
 	go func() {
-		runQueue(1, func(jobCh <-chan workqueue.Job) (doneCh <-chan interface{}) {
-			doneCh = workqueue.RunQueue1(jobCh, workerCount)
-			return
+		runQueue(1, func(jobCh <-chan workqueue.Job) {
+			workqueue.RunQueue1(jobCh, workerCount)
 		})
 	}()
 
 	// Queue 2
 	go func() {
-		runQueue(2, func(jobCh <-chan workqueue.Job) (doneCh <-chan interface{}) {
-			doneCh = workqueue.RunQueue2(jobCh, workerCount)
-			return
+		runQueue(2, func(jobCh <-chan workqueue.Job) {
+			workqueue.RunQueue2(jobCh, workerCount)
 		})
 	}()
 

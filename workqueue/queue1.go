@@ -16,8 +16,8 @@ func (worker *worker1) loopWork(jobCh <-chan JobRequest) {
 
 // RunQueue1 creates a new work queue. This implementation has a simple job
 // channel that delivers jobs to workers.
-func RunQueue1(jobCh <-chan Job, workerCount int) (doneCh <-chan interface{}) {
-	doneCh1 := make(chan interface{})
+func RunQueue1(jobCh <-chan Job, workerCount int) {
+	doneCh := make(chan interface{})
 	jobRequestCh := make(chan JobRequest)
 	workers := make([]*worker1, workerCount)
 
@@ -43,9 +43,8 @@ func RunQueue1(jobCh <-chan Job, workerCount int) (doneCh <-chan interface{}) {
 		}
 
 		waitGroup.Wait()
-		doneCh1 <- nil
+		doneCh <- nil
 	}()
 
-	doneCh = doneCh1
-	return
+	<-doneCh
 }
